@@ -11,27 +11,67 @@ import puzzle_globals
 #   cost = number of tiles moved (1)
 #   this also means cost = depth
 #
-#
 class State:
     # standard init function for the class with all the needed params
     def __init__(self, puz, cost, parent):
+        # convert puz to a one dimensional list
         self.puz = puz
         self.cost = cost
         self.parent = parent
 
+    def __str__(self):
+        total_rows = total_cols = int(math.sqrt(len(self.puz)))
+        chunked = []
+        for i in range(total_rows):
+            temp = []
+            for j in range(total_cols):
+                temp.append(self.puz[i * total_cols + j])
+            chunked.append(temp)
+
+        str_out = ""
+        for row in chunked:
+            str_out += str(row) + "\n"
+
+        return str_out
+
     # check whether this state is a goal state or not
     def is_goal(self):
         if self.puz == puzzle_globals.GOAL:
-            return true
+            return True
         else:
-            return false
+            return False
 
     # function that returns all the possible moves that can be done from this State
     # as a list of states
     def expand(self):
         des = []
-        total_rows = total_cols = math.sqrt(len(self.puz))
+        total_rows = total_cols = int(math.sqrt(len(self.puz)))
         # looks for the empty space
         # this will be used to deptermine the tiles that can be moved and where (index of 0)
         blank_index = self.puz.index(0)
         # TODO: push new states to des for every tile that be moved arround the blank tile
+        blank_row = blank_index / total_cols
+        blank_col = blank_index % total_cols
+
+        # list of movable tiles (around the blank tile - top , left, bottom, right)
+        # each item in the list is the ordered pair of row and col for each tile
+        movable_tiles = [   [blank_row - 1, blank_col], # top
+                            [blank_row, blank_col - 1], # left
+                            [blank_row + 1, blank_col], # bottom
+                            [blank_row, blank_col + 1]] # right
+
+        for tile in movable_tiles:
+            # check if the movable tile is inside the grid
+            if  tile[0] >= 0 and tile[0] < total_rows and \
+                tile[1] >= 0 and tile[1] < total_cols:
+                # calculate actual index of the tile in a one dimensional list
+                actual_index = tile[0] * total_cols + tile[1]
+                # clone list, so it doesnt affect the old list
+                temp_list = list(self.puz)
+                # swap the blank tiles
+                # intermidiate variables
+                a = blank_index
+                b = actual_index
+                temp_list[a], temp_list[b] = temp_list[b], temp_list[a]
+                des.append(State(temp_list, self.cost + 1, self))
+        return des
