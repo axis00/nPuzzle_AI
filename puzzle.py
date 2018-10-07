@@ -18,8 +18,27 @@ def h_misplaced_tiles(state):
 # returns the sum of manhattan distance of all the tiles in the state compared to goal in
 #   puzzle_globals.py
 def h_manhattan_distance(state):
+    if len(state.puz) != len(Globals.GOAL):
+        raise Exception('state puzzle length is not equal to goal length')
+
     res = 0
-    # TODO: continue
+    total_rows = total_cols = int(math.sqrt(len(state.puz)))
+
+    for state_index in range(len(state.puz)):
+
+        goal_index = Globals.GOAL.index(state.puz[state_index])
+
+        state_row = state_index / total_cols
+        state_col = state_index % total_cols
+
+        goal_row = goal_index / total_cols
+        goal_col = goal_index % total_cols
+
+        res += abs(state_row - goal_row) + abs(state_col - goal_col)
+
+    return res
+
+
 
 # function to do a blind search (UCS) from an initial state and
 # returns a dictionary {solution : [solution states],
