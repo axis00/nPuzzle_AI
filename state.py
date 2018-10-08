@@ -18,6 +18,8 @@ class State:
         self.puz = puz
         self.cost = cost
         self.parent = parent
+        self.heuristic_function = heuristic_function
+        self.heuristic_only = heuristic_only
 
         if heuristic_function:
             self.heuristic = heuristic_function(self)
@@ -48,7 +50,6 @@ class State:
     # check whether this state is a goal state or not
     def is_goal(self):
         if self.puz == Globals.GOAL:
-
             return True
         else:
             return False
@@ -85,5 +86,5 @@ class State:
                 a = blank_index
                 b = actual_index
                 temp_list[a], temp_list[b] = temp_list[b], temp_list[a]
-                des.append(State(temp_list, self.cost + 1, self, self.heuristic_function))
+                des.append(State(temp_list, self.cost + 1, self, self.heuristic_function,self.heuristic_only))
         return des

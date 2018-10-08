@@ -40,7 +40,7 @@ def h_manhattan_distance(state):
 
 
 
-# function to do a blind search (UCS) from an initial state and
+# function to do a search from an initial state and
 # returns a dictionary {solution : [solution states],
 #                        max_frontier_size : int, states_eval : int}
 # TODO: replace exhaustive to limit of solutions
@@ -55,7 +55,6 @@ def do_search(init_state,exhaustive = False):
 
     while( not frontier.empty()):
         curr_state = frontier.get(False)
-        print str(curr_state) + "\n" + str(frontier.qsize())
 
         res['states_evaluated'] += 1
         if curr_state.is_goal():
@@ -72,8 +71,8 @@ def do_search(init_state,exhaustive = False):
     return res
 
 def main():
-    initial_state = State([1,0,2,3,4,5,6,7,8],0,None)
-    out = do_blind_search(initial_state)
+    initial_state = State([1,0,2,3,4,5,6,7,8], 0, None, h_misplaced_tiles)
+    out = do_search(initial_state)
     print out
 
 if __name__ == '__main__':
