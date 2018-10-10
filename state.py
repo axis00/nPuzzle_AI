@@ -43,7 +43,7 @@ class State:
 
     def __cmp__(self, other):
         if self.heuristic_only:
-            return self.heuristic + self.heuristic
+            return self.heuristic - other.heuristic
         else:
             return (self.cost + self.heuristic) - (other.cost + other.heuristic)
 
