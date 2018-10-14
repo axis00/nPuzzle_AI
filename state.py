@@ -41,11 +41,29 @@ class State:
 
         return str_out + str(self.cost)
 
-    def __cmp__(self, other):
+    def __compare(self, other):
         if self.heuristic_only:
             return self.heuristic - other.heuristic
         else:
             return (self.cost + self.heuristic) - (other.cost + other.heuristic)
+
+    def __lt__(self,other):
+        return self.__compare(other) < 0
+
+    def __gt__(self,other):
+        return self.__compare(other) > 0
+
+    def __eq__(self,other):
+        return self.__compare(other) == 0
+
+    def __ne__(sefl,other):
+        return self.__compare(other) != 0
+
+    def __le__(self,other):
+        return self.__compare(other) <= 0
+
+    def __ge__(self,other):
+        return self.__compare(other) >= 0
 
     # check whether this state is a goal state or not
     def is_goal(self):
@@ -63,7 +81,7 @@ class State:
         # this will be used to deptermine the tiles that can be moved and where (index of 0)
         blank_index = self.puz.index(0)
         # calculate the row and col on a '2D' list from a 1D list
-        blank_row = blank_index / total_cols
+        blank_row = blank_index // total_cols
         blank_col = blank_index % total_cols
 
         # list of movable tiles (around the blank tile - top , left, bottom, right)

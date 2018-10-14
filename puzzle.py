@@ -1,7 +1,7 @@
 import sys
 
 from state import *
-from Queue import PriorityQueue
+from queue import PriorityQueue
 from puzzle_globals import Globals
 
 # n puzzle misplaced tiles heuristic
@@ -28,10 +28,10 @@ def h_manhattan_distance(state):
 
         goal_index = Globals.GOAL.index(state.puz[state_index])
 
-        state_row = state_index / total_cols
+        state_row = state_index // total_cols
         state_col = state_index % total_cols
 
-        goal_row = goal_index / total_cols
+        goal_row = goal_index // total_cols
         goal_col = goal_index % total_cols
 
         res += abs(state_row - goal_row) + abs(state_col - goal_col)
@@ -71,9 +71,9 @@ def do_search(init_state,exhaustive = False):
     return res
 
 def main():
-    initial_state = State([1,0,2,3,4,5,6,7,8], 0, None, h_misplaced_tiles)
+    initial_state = State([1,2,3,4,5,6,7,0,8], 0, None, h_misplaced_tiles)
     out = do_search(initial_state)
-    print out
+    print(str(out))
 
 if __name__ == '__main__':
     main()
