@@ -43,37 +43,43 @@ def h_manhattan_distance(state):
 # function to do a search from an initial state and
 # returns a dictionary {solution : [solution states],
 #                        max_frontier_size : int, states_eval : int}
-# TODO: replace exhaustive to limit of solutions
-def do_search(init_state,exhaustive = False):
+def do_search(init_state,ignore_dups = False):
     res = {
-        'solution' : [],
+        'solutions' : [],
         'max_frontier_size' : 0,
-        'states_evaluated' : 0
+        'states_evaluated' : 0,
     }
     frontier = PriorityQueue()
     frontier.put(init_state)
+
+    duplicates = {}
 
     while( not frontier.empty()):
         curr_state = frontier.get(False)
 
         res['states_evaluated'] += 1
         if curr_state.is_goal():
-            res['solution'].append(curr_state)
-            if not exhaustive:
-                return res
+            res['solutions'].append(curr_state)
+            return res
+
         else:
             children = curr_state.expand()
 
             for child in children:
-                frontier.put(child)
+                if not str(child.puz) in duplicates and ignore_dups:
+                    duplicates[str(child.puz)] = 1
+                    frontier.put(child)
+                elif not ignore_dups:
+                    frontier.put(child)
 
             res['max_frontier_size'] = max(res['max_frontier_size'],frontier.qsize())
     return res
 
 def main():
-    initial_state = State([1,2,3,4,5,6,7,0,8], 0, None, h_misplaced_tiles)
-    out = do_search(initial_state)
+    initial_state = State([1,2,3,0,4,6,7,5,8], 0, None,h_manhattan_distance)
+    out = do_search(initial_state,ignore_dups = True)
     print(str(out))
+    print(str(out['solutions'][0].cost))
 
 if __name__ == '__main__':
     main()
