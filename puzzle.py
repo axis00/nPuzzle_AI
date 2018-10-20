@@ -1,4 +1,5 @@
 import sys
+import random
 
 from state import *
 from queue import PriorityQueue
@@ -75,8 +76,58 @@ def do_search(init_state,ignore_dups = False):
             res['max_frontier_size'] = max(res['max_frontier_size'],frontier.qsize())
     return res
 
+# creates a random solvable config of the puzzle
+# inputs : the goal array
+def shuffle_puzzle(goal):
+    n_moves = random.randint(1,100)
+    res = list(goal)
+    for n_moves in range(n_moves):
+        blank_index = res.index(0)
+        # do random move
+        tile_index = random.choice(get_movable_tiles(res))
+        res[blank_index], res[tile_index] = res[tile_index], res[blank_index]
+
+    return res
+
+
+def get_movable_tiles(puzzle):
+    movable_tiles = []
+    total_rows = total_cols = int(math.sqrt(len(puzzle)))
+    # looks for the empty space
+    # this will be used to deptermine the tiles that can be moved and where (index of 0)
+    blank_index = puzzle.index(0)
+    # calculate the row and col on a '2D' list from a 1D list
+    blank_row = blank_index // total_cols
+    blank_col = blank_index % total_cols
+
+    # list of movable tiles (around the blank tile - top , left, bottom, right)
+    # each item in the list is the ordered pair of row and col for each tile
+    tiles = [   [blank_row - 1, blank_col], # top
+                [blank_row, blank_col - 1], # left
+                [blank_row + 1, blank_col], # bottom
+                [blank_row, blank_col + 1]] # right
+    
+    for tile in tiles:
+        # check if the movable tile is inside the grid
+        if  tile[0] >= 0 and tile[0] < total_rows and \
+            tile[1] >= 0 and tile[1] < total_cols:
+            # calculate actual index of the tile in a one dimensional list
+            actual_index = tile[0] * total_cols + tile[1]
+            movable_tiles.append(actual_index)
+
+    return movable_tiles
+        
+        
+def shuffle(self, value):
+        for i in range(value):
+            row, col = self.find(0)
+            free_block = self.getValidMoves()
+            target = random.choice(free_block)
+            self.swap(self,(row, col), target)            
+            row,col = target
+
 def main():
-    initial_state = State([1,2,3,0,4,6,7,5,8], 0, None,h_manhattan_distance)
+    initial_state = State([1,2,3,4,0,5,6,7,8], 0, None)
     out = do_search(initial_state,ignore_dups = True)
     print(str(out))
     print(str(out['solutions'][0].cost))
