@@ -116,15 +116,6 @@ def get_movable_tiles(puzzle):
             movable_tiles.append(actual_index)
 
     return movable_tiles
-        
-        
-def shuffle(self, value):
-        for i in range(value):
-            row, col = self.find(0)
-            free_block = self.getValidMoves()
-            target = random.choice(free_block)
-            self.swap(self,(row, col), target)            
-            row,col = target
 
 def main():
     initial_state = State([1,2,3,4,0,5,6,7,8], 0, None)
