@@ -1,9 +1,13 @@
 import sys
 import random
+import plotly
+import plotly.graph_objs as go
 
+from plotly import tools
 from state import *
 from queue import PriorityQueue
 from puzzle_globals import Globals
+from tqdm import tqdm
 
 # n puzzle misplaced tiles heuristic
 # returns the sum of all the misplaced tiles in the state compared to goal in
@@ -38,8 +42,6 @@ def h_manhattan_distance(state):
         res += abs(state_row - goal_row) + abs(state_col - goal_col)
 
     return res
-
-
 
 # function to do a search from an initial state and
 # returns a dictionary {solution : [solution states],
@@ -106,7 +108,7 @@ def get_movable_tiles(puzzle):
                 [blank_row, blank_col - 1], # left
                 [blank_row + 1, blank_col], # bottom
                 [blank_row, blank_col + 1]] # right
-    
+
     for tile in tiles:
         # check if the movable tile is inside the grid
         if  tile[0] >= 0 and tile[0] < total_rows and \
@@ -117,11 +119,89 @@ def get_movable_tiles(puzzle):
 
     return movable_tiles
 
+def plot(x_val, y_val, line_name):
+    trace = go.Scatter(
+        x = x_val,
+        y = y_val,
+        mode = 'lines',
+        name = line_name
+    )
+    return trace;
+
+# helper function to get the key data sorting
+def get_key(l):
+    return l[0]
+def get_plotdata(name, data_set, heuristic_function=None, heuristic_only = False):
+    res = {}
+    solution_depth_array = []
+    max_frontier_size_array = []
+    num_of_nodes_visited_array = []
+    # list of lists(l) of length 2 where l[0] is the solution detph and l[1] is the max_frontier_size
+    space_complexity_points = []
+    complexity_points = []
+    optimality_points = []
+
+    for x in tqdm(range(len(data_set)), desc = name):
+        random_initial_config = data_set[x]
+        goal_state = do_search(State(random_initial_config, 0, None, heuristic_function,heuristic_only), ignore_dups = True)
+        complexity_points.append([ goal_state['solutions'][0].cost, goal_state['max_frontier_size'], goal_state['states_evaluated']])
+        optimality_points.append([ x, goal_state['solutions'][0].cost ])
+
+    complexity_points = sorted(complexity_points, key = get_key)
+
+    solution_depth_array = [p[0] for p in complexity_points]
+    max_frontier_size_array = [p[1] for p in complexity_points]
+    num_of_nodes_visited_array = [p[2] for p in complexity_points]
+
+    res['space_complexity_plot'] = plot(solution_depth_array,max_frontier_size_array,name) #for space complexity graph
+    res['time_complexity_plot'] = plot(solution_depth_array,num_of_nodes_visited_array,name) # for time complexity graph
+    res['optimality_plot'] = plot([ p[0] for p in optimality_points ],[ p[1] for p in optimality_points ],name) # for optimality graph
+
+    return res
+
 def main():
-    initial_state = State([1,2,3,4,0,5,6,7,8], 0, None)
-    out = do_search(initial_state,ignore_dups = True)
-    print(str(out))
-    print(str(out['solutions'][0].cost))
+    sample_size = 25
+
+    samples = [shuffle_puzzle(Globals.GOAL) for i in range(sample_size)]
+
+    ucs_plotdata = get_plotdata(name = "UCS/BFS",data_set = samples)
+    greedy_mt_plotdata = get_plotdata(name = "Greedy Best First Search - Misplaced Tiles Heuristic" , data_set = samples, heuristic_function = h_misplaced_tiles, heuristic_only = True)
+    greedy_md_plotdata = get_plotdata(name = "Greedy Best First Search - Manhattan Distance Heuristic", data_set = samples, heuristic_function = h_manhattan_distance, heuristic_only = True)
+    a_star_mt_plotdata = get_plotdata(name = "A* - Misplaced Tiles Heuristic", data_set = samples, heuristic_function = h_misplaced_tiles)
+    a_star_md_plotdata = get_plotdata(name = "A* - Manhattan Distance Heuristic", data_set = samples, heuristic_function = h_manhattan_distance)
+
+    space_complexity_data = [ucs_plotdata['space_complexity_plot'], \
+        greedy_mt_plotdata['space_complexity_plot'], \
+        greedy_md_plotdata['space_complexity_plot'], \
+        a_star_mt_plotdata['space_complexity_plot'], \
+        a_star_md_plotdata['space_complexity_plot'] ]
+
+    time_complexity_data = [ucs_plotdata['time_complexity_plot'], \
+        greedy_mt_plotdata['time_complexity_plot'], \
+        greedy_md_plotdata['time_complexity_plot'], \
+        a_star_mt_plotdata['time_complexity_plot'], \
+        a_star_md_plotdata['time_complexity_plot'] ]
+
+    optimality_data = [ucs_plotdata['optimality_plot'], \
+        greedy_mt_plotdata['optimality_plot'], \
+        greedy_md_plotdata['optimality_plot'], \
+        a_star_mt_plotdata['optimality_plot'], \
+        a_star_md_plotdata['optimality_plot'] ]
+
+    plotly.offline.plot({
+    "data": space_complexity_data,
+    "layout": go.Layout(title="Space Complexity", xaxis={'title':"Solution Depth"}, yaxis={'title':"Max Frontier Size"})
+    }, auto_open=True, filename='space-complexity.html')
+
+    plotly.offline.plot({
+    "data": time_complexity_data,
+    "layout": go.Layout(title="Time Complexity", xaxis={'title':"Solution Depth"}, yaxis={'title':"States Evaluated"})
+    }, auto_open=True, filename='time-complexity.html')
+
+    plotly.offline.plot({
+    "data": optimality_data,
+    "layout": go.Layout(title="Optimality", xaxis={'title':"Instances"}, yaxis={'title':"Solution Depth"})
+    }, auto_open=True, filename='optimality.html')
 
 if __name__ == '__main__':
     main()
